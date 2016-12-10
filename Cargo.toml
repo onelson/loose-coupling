@@ -1,0 +1,14 @@
+[package]
+name = "loose-coupling"
+version = "0.1.0"
+authors = ["Owen Nelson <onelson@gmail.com>"]
+
+[[bin]]
+name = "loose-coupling"
+
+[dependencies]
+specs = "0.7.0"
+time = "*"
+rand = "*"
+radiant-rs = "0.1.1"
+
