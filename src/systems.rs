@@ -22,7 +22,7 @@ impl specs::System<game::Delta> for Spinner
 
         // update entities
         for b in (&mut body).iter() {
-            b.rotation += self.factor % rand::random::<f32>();
+            b.rotation += self.factor * rand::random::<f32>();
         }
     }
 }
