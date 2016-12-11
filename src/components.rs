@@ -15,10 +15,10 @@ impl specs::Component for Body {
 }
 
 #[derive(Default, Clone, Debug)]
-pub struct Sprited {
-    sprite: Arc<Sprite>
+pub struct Sprited<'game> {
+    sprite: Arc<Sprite<'game>>
 }
 
-impl specs::Component for Sprited {
-    type Storage = specs::VecStorage<Sprited>;
+impl<'game> specs::Component for Sprited<'game> {
+    type Storage = specs::VecStorage<Sprited<'game>>;
 }
