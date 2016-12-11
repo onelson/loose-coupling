@@ -6,9 +6,10 @@ extern crate radiant_rs;
 
 use radiant_rs::{DisplayInfo, Display, Renderer, Layer, Sprite, Font, FontInfo, Color, blendmodes, utils};
 
+mod assets;
+mod components;
 mod game;
 mod systems;
-mod components;
 
 fn main() {
     let (width, height) = (300, 300);
