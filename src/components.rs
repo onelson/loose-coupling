@@ -1,13 +1,13 @@
-use radiant_rs::Sprite;
 use specs;
-use std::sync::Arc;
 
 
 #[derive(Clone, Debug)]
 pub struct Body {
-    pub x: f64,
-    pub y: f64,
-    pub rotation: f64,
+    pub x: f32,
+    pub y: f32,
+    pub scale_x: f32,
+    pub scale_y: f32,
+    pub rotation: f32,
 }
 
 impl specs::Component for Body {
@@ -16,7 +16,7 @@ impl specs::Component for Body {
 
 #[derive(Clone, Debug)]
 pub struct Sprited {
-    id: u8
+    pub id: u8
 }
 
 impl specs::Component for Sprited {

@@ -4,32 +4,57 @@ extern crate specs;
 extern crate rand;
 extern crate radiant_rs;
 
-use radiant_rs::{DisplayInfo, Display, Renderer, Layer, Sprite, Font, FontInfo, Color, blendmodes, utils};
-
 mod assets;
 mod components;
 mod game;
 mod systems;
 
+use std::sync::mpsc::channel;
+use std::sync::Arc;
+use radiant_rs::{DisplayInfo, Display, Renderer, Layer, Color, utils};
+use systems::DrawCommand;
+
 fn main() {
+
     let (width, height) = (300, 300);
-    let display = Display::new(DisplayInfo { width: width, height: height, vsync: true, ..DisplayInfo::default() });
+
+    let display = Display::new(DisplayInfo {
+        width: width,
+        height: height,
+        vsync: true,
+        ..DisplayInfo::default()
+    });
+
     let renderer = Renderer::new(&display);
+    let (tx, rx) = channel::<DrawCommand>();
+    let mut asset_manager = assets::AssetManager::new(&renderer);
+    let main_layer = Arc::new(Layer::new(width, height));
+    let mut game = game::Game::new(tx.clone());
 
-    let game = game::Game::new(&renderer);
-
-    std::thread::spawn(|| {
-        let mut game = game;
-        while game.tick() {}
+    std::thread::spawn(move || {
+        while game.tick() {
+            game.planner.wait();
+            let _ = tx.send(DrawCommand::Flush);
+            std::thread::sleep(std::time::Duration::from_millis(15));
+        }
     });
 
     utils::renderloop(|state| {
+        match rx.recv().unwrap() {
+            DrawCommand::DrawTransformed {id, frame, x, y, color, rot, sx, sy} => {
+                let sprite = asset_manager.get_sprite(&id);
+                sprite.draw_transformed(
+                    &main_layer, frame, x, y, color, rot, sx, sy
+                );
+            },
 
-        game.layer.clear();
-
-        renderer.clear_target(Color::white());
-        renderer.draw_layer(&game.layer);
-        renderer.swap_target();
+            DrawCommand::Flush => {
+                renderer.clear_target(Color::white());
+                renderer.draw_layer(&main_layer);
+                renderer.swap_target();
+                main_layer.clear();
+            }
+        }
 
         !display.poll_events().was_closed()
     });

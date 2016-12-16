@@ -4,38 +4,33 @@ use specs;
 use systems;
 use components;
 
-use std::sync::Arc;
-use radiant_rs::{Layer, Renderer, Sprite};
+use std::sync::mpsc::Sender;
 use assets;
 
 pub type Delta = f64;
 
+
 pub struct Game {
-    pub world: specs::World,
     pub planner: specs::Planner<Delta>,
-    pub layer: Layer,
     last_time: u64
 }
 
 
 impl Game {
-    pub fn new(renderer: &Renderer) -> Game
+    pub fn new(render_tx: Sender<systems::DrawCommand>) -> Game
     {
-        let (width, height) = (300, 300);
-        let layer = Layer::new(width, height);
-
         // The world is in charge of component storage, and as such contains all the game state.
-        let world = specs::World::new();
+        let mut world = specs::World::new();
         world.register::<components::Sprited>();
         world.register::<components::Body>();
 
-        let spinner_sys = systems::Spinner { factor: 2.5 };
-        let render_sys = systems::Renderer { layer: Arc::new(&layer) };
+        let spinner_sys = systems::Spinner { factor: 0.25 };
+        let render_sys = systems::Renderer { tx: render_tx.clone() };
 
         // entities are created by combining various components via the world
         world.create_now()
             .with(components::Sprited { id: assets::ids::RUST_LOGO })
-            .with(components::Body { x: width /  2, y: height / 2, scale_x: 1., scale_y: 1., rotation: 0. })
+            .with(components::Body { x: 150., y: 150., scale_x: 1., scale_y: 1., rotation: 0. })
             .build();
 
         // systems are registered with a planner, which manages their execution
@@ -45,8 +40,6 @@ impl Game {
 
         Game {
             planner: plan,
-            layer: layer,
-            world: world,
             last_time: time::precise_time_ns()
         }
     }

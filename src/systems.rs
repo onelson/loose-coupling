@@ -1,13 +1,14 @@
 use specs;
 use rand;
-use std::sync::Arc;
-use radiant_rs::{Color, Layer};
+use std::sync::mpsc::Sender;
+use radiant_rs::{Color};
 use game;
 use components;
 
+
 #[derive(Clone)]
 pub struct Spinner {
-    factor: f32
+    pub factor: f32
 }
 
 
@@ -28,11 +29,24 @@ impl specs::System<game::Delta> for Spinner
 }
 
 
-#[derive(Clone)]
-pub struct Renderer {
-    pub layer: Arc<Layer>
+pub enum DrawCommand {
+    DrawTransformed {
+        id: u8,
+        frame: u32,
+        color: Color,
+        x: f32,
+        y: f32,
+        rot: f32,
+        sx: f32,
+        sy: f32
+    },
+    Flush
 }
 
+#[derive(Clone)]
+pub struct Renderer {
+    pub tx: Sender<DrawCommand>
+}
 
 impl specs::System<game::Delta> for Renderer
 {
@@ -45,7 +59,16 @@ impl specs::System<game::Delta> for Renderer
         // update entities
         for (b, s) in (&body, &sprited).iter() {
             let frame_id = 0;
-            s.sprite.draw_transformed(self.layer.clone(), frame_id, b.x, b.y, Color::transparent(), b.rotation, b.scale_x, b.scale_y);
+            self.tx.send(DrawCommand::DrawTransformed {
+                id: s.id,
+                frame: frame_id,
+                color: Color::white(),
+                x: b.x,
+                y: b.y,
+                rot: b.rotation,
+                sx: b.scale_x,
+                sy: b.scale_y
+            }).unwrap();
         }
     }
 }

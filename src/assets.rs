@@ -1,12 +1,12 @@
 
 use radiant_rs::{RenderContext, Renderer, Sprite};
-use std::sync::Arc;
 use std::collections::HashMap;
 
 
 pub mod ids {
     pub const RUST_LOGO: u8 = 1;
 }
+
 
 #[derive(Clone)]
 pub struct AssetManager<'a> {
