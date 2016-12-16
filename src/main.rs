@@ -12,7 +12,7 @@ mod systems;
 use std::sync::mpsc::channel;
 use std::sync::Arc;
 use radiant_rs::{DisplayInfo, Display, Renderer, Layer, Color, utils};
-use systems::DrawCommand;
+use systems::DrawCommand::{self, Flush, DrawTransformed};
 
 fn main() {
 
@@ -34,21 +34,21 @@ fn main() {
     std::thread::spawn(move || {
         while game.tick() {
             game.planner.wait();
-            let _ = tx.send(DrawCommand::Flush);
+            let _ = tx.send(Flush);
             std::thread::sleep(std::time::Duration::from_millis(15));
         }
     });
 
     utils::renderloop(|state| {
         match rx.recv().unwrap() {
-            DrawCommand::DrawTransformed {id, frame, x, y, color, rot, sx, sy} => {
+            DrawTransformed {id, frame, x, y, color, rot, sx, sy} => {
                 let sprite = asset_manager.get_sprite(&id);
                 sprite.draw_transformed(
                     &main_layer, frame, x, y, color, rot, sx, sy
                 );
             },
 
-            DrawCommand::Flush => {
+            Flush => {
                 renderer.clear_target(Color::white());
                 renderer.draw_layer(&main_layer);
                 renderer.swap_target();
