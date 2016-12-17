@@ -33,7 +33,6 @@ fn main() {
 
     std::thread::spawn(move || {
         while game.tick() {
-            game.planner.wait();
             let _ = tx.send(Flush);
             std::thread::sleep(std::time::Duration::from_millis(15));
         }
